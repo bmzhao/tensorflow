@@ -782,7 +782,11 @@ cc_library(
     deps = [
         ":lib_internal",
         "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_absl//absl/debugging:failure_signal_handler",        
+        "@com_google_absl//absl/debugging:stacktrace",
+        "@com_google_absl//absl/debugging:symbolize",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/types:optional",
     ],
 )
@@ -827,8 +831,10 @@ cc_library(
     srcs = glob(["platform/*/stacktrace.h"]),
     hdrs = ["platform/stacktrace.h"],
     deps = [
-        ":abi",
         ":lib_platform",
+        "@com_google_absl//absl/debugging:symbolize",
+        "@com_google_absl//absl/debugging:stacktrace",
+        "@com_google_absl//absl/strings:str_format",
         "//tensorflow/core/platform/default/build_config:stacktrace",
     ],
 )
@@ -838,9 +844,8 @@ cc_library(
     srcs = ["platform/stacktrace_handler.cc"],
     hdrs = ["platform/stacktrace_handler.h"],
     deps = [
-        ":abi",
         ":lib_platform",
-        ":stacktrace",
+        "@com_google_absl//absl/debugging:failure_signal_handler",
     ],
 )
 
@@ -2545,6 +2550,7 @@ cc_library(
                ":abi",
                ":core_stringpiece",
                "@com_google_absl//absl/memory",
+               "@com_google_absl//absl/debugging:failure_signal_handler",
                "@com_google_absl//absl/strings",
                "//third_party/eigen3",
                "//tensorflow/core/platform/default/build_config:platformlib",
@@ -3829,6 +3835,7 @@ tf_cc_tests(
         "platform/net_test.cc",
         "platform/port_test.cc",
         "platform/profile_utils/cpu_utils_test.cc",
+        "platform/stacktrace_test.cc",
         "platform/stacktrace_handler_test.cc",
         "platform/subprocess_test.cc",
         "platform/vmodule_benchmark_test.cc",

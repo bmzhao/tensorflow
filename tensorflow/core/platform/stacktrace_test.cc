@@ -1,4 +1,4 @@
-/* Copyright 2015 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,23 +14,22 @@ limitations under the License.
 ==============================================================================*/
 // Testing proper operation of the stacktrace handler.
 
-#include <signal.h>
+#include <string>
 
+#include "tensorflow/core/platform/logging.h"
+#include "tensorflow/core/platform/stacktrace.h"
 #include "tensorflow/core/platform/test.h"
 
 namespace tensorflow {
 namespace {
 
-#if GTEST_HAS_DEATH_TEST
-TEST(StacktraceHandlerDeathTest, SignalHandlerWorks) {
-  // Note that EXPECT_DEATH forks underneath the hood, and
-  // captures the stderr of its child.
+TEST(StacktraceTest, StacktraceWorks) {
+  std::string stacktrace = CurrentStackTrace();
+  LOG(INFO) << "CurrentStackTrace():\n" << stacktrace;
+  std::string expected_frame = "testing::internal::UnitTestImpl::RunAllTests()";
 
-  // Just make sure we can detect one of the calls in testing stack.
-  EXPECT_DEATH(raise(SIGABRT), 
-    "testing::internal::UnitTestImpl::RunAllTests()");
+  EXPECT_NE(stacktrace.find(expected_frame), std::string::npos);
 }
-#endif
 
 }  // namespace
 }  // namespace tensorflow

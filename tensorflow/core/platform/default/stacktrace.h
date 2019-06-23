@@ -20,58 +20,39 @@ limitations under the License.
 #include "tensorflow/core/platform/platform.h"
 // clang-format on
 
-#if !defined(IS_MOBILE_PLATFORM) && !defined(PLATFORM_WINDOWS) && \
-    defined(PLATFORM_POSIX) && (defined(__clang__) || defined(__GNUC__))
-#define TF_GENERATE_BACKTRACE
-#endif
-
-#if defined(TF_GENERATE_BACKTRACE)
-#include <dlfcn.h>
-#include <execinfo.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#endif  // defined(TF_GENERATE_BACKTRACE)
-
-#include <sstream>
 #include <string>
-#include "tensorflow/core/platform/abi.h"
+#include "absl/debugging/symbolize.h"
+#include "absl/debugging/stacktrace.h"
+#include "absl/strings/str_format.h"
 
 namespace tensorflow {
 
 // Function to create a pretty stacktrace.
 inline std::string CurrentStackTrace() {
-#if defined(TF_GENERATE_BACKTRACE)
-  std::stringstream ss("");
-  ss << "*** Begin stack trace ***" << std::endl;
+  constexpr int kNumStackFrames = 64;
+  void* stack[kNumStackFrames];
+  int frame_sizes[kNumStackFrames];
+  int depth = absl::GetStackFrames(stack, frame_sizes, kNumStackFrames, 1);
 
-  // Get the mangled stack trace.
-  int buffer_size = 128;
-  void* trace[128];
-  buffer_size = backtrace(trace, buffer_size);
-
-  for (int i = 0; i < buffer_size; ++i) {
-    const char* symbol = "";
-    Dl_info info;
-    if (dladdr(trace[i], &info)) {
-      if (info.dli_sname != nullptr) {
-        symbol = info.dli_sname;
-      }
+  char buf[1024];
+  std::string stacktrace;
+  for (int i = 0; i < depth; ++i) {
+    const char* symbol = "(unknown)";
+    if (absl::Symbolize(stack[i], buf, sizeof(buf))) {
+      symbol = buf;
     }
-
-    std::string demangled = tensorflow::port::MaybeAbiDemangle(symbol);
-    if (demangled.length()) {
-      ss << "\t" << demangled << std::endl;
+    
+    std::string line;
+    if (frame_sizes[i] <= 0) {
+      line = absl::StrFormat("%p  (unknown)  %s\n", stack[i], symbol);
     } else {
-      ss << "\t" << symbol << std::endl;
+      line = absl::StrFormat("%p  %9d  %s\n", stack[i], frame_sizes[i], symbol);
     }
+    
+    stacktrace += line;
   }
 
-  ss << "*** End stack trace ***" << std::endl;
-  return ss.str();
-#else
-  return std::string();
-#endif  // defined(TF_GENERATE_BACKTRACE)
+  return stacktrace;
 }
 
 inline void DebugWriteToString(const char* data, void* arg) {
