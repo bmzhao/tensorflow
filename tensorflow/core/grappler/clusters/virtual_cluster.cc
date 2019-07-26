@@ -18,7 +18,7 @@ limitations under the License.
 #include "tensorflow/core/framework/cost_graph.pb.h"
 #include "tensorflow/core/framework/tensor_shape.pb.h"
 #include "tensorflow/core/framework/types.h"
-#include "tensorflow/core/grappler/clusters/utils.h"
+#include "tensorflow/core/grappler/cluster/utils/cluster_utils.h"
 #include "tensorflow/core/grappler/costs/op_level_cost_estimator.h"
 
 namespace tensorflow {

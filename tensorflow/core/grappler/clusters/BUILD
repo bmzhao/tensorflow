@@ -19,9 +19,9 @@ config_setting(
 )
 
 tf_cuda_library(
-    name = "utils",
-    srcs = ["utils.cc"],
-    hdrs = ["utils.h"],
+    name = "cluster_utils",
+    srcs = ["cluster_utils.cc"],
+    hdrs = ["cluster_utils.h"],
     cuda_deps = [
         "@local_config_cuda//cuda:cudnn_header",
     ],
@@ -44,7 +44,7 @@ tf_cc_test(
     linkstatic = if_cuda(1, 0),
     tags = tf_cuda_tests_tags(),
     deps = [
-        ":utils",
+        ":cluster_utils",
         "//tensorflow/core:gpu_id",
         "//tensorflow/core:lib",
         "//tensorflow/core:protos_all_cc",
@@ -79,7 +79,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":cluster",
-        ":utils",
+        ":cluster_utils",
         "//tensorflow/core:core_cpu_base",
         "//tensorflow/core:framework",
         "//tensorflow/core:protos_all_cc",
@@ -113,7 +113,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":cluster",
-        ":utils",
+        ":cluster_utils",
         "//tensorflow/cc:coordinator",
         "//tensorflow/cc:queue_runner",
         "//tensorflow/core:core_cpu",
@@ -122,7 +122,7 @@ cc_library(
         "//tensorflow/core:framework",
         "//tensorflow/core:gpu_id",
         "//tensorflow/core:lib",
-        "//tensorflow/core/grappler:utils",
+        "//tensorflow/core/grappler:cluster_utils",
         "//tensorflow/core/kernels:ops_util",
     ],
 )
@@ -145,8 +145,8 @@ tf_cc_test(
         "//tensorflow/core:protos_all_cc",
         "//tensorflow/core:test",
         "//tensorflow/core:test_main",
+        "//tensorflow/core/grappler:cluster_utils",
         "//tensorflow/core/grappler:grappler_item",
-        "//tensorflow/core/grappler:utils",
         "//tensorflow/core/grappler/inputs:trivial_test_graph_input_yielder",
     ],
 )

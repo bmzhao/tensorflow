@@ -22,7 +22,7 @@ limitations under the License.
 #include "tensorflow/core/framework/tensor.pb.h"
 #include "tensorflow/core/framework/tensor_shape.pb.h"
 #include "tensorflow/core/framework/types.h"
-#include "tensorflow/core/grappler/clusters/utils.h"
+#include "tensorflow/core/grappler/cluster/utils/cluster_utils.h"
 
 namespace tensorflow {
 namespace grappler {

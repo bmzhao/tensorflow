@@ -64,7 +64,7 @@ limitations under the License.
   #include "tensorflow/core/grappler/grappler_item.h"
   #include "tensorflow/core/grappler/grappler_item_builder.h"
   #include "tensorflow/core/grappler/clusters/cluster.h"
-  #include "tensorflow/core/grappler/clusters/utils.h"
+  #include "tensorflow/core/grappler/cluster/utils/cluster_utils.h"
   #include "tensorflow/core/grappler/clusters/virtual_cluster.h"
   #include "tensorflow/core/grappler/optimizers/meta_optimizer.h"
   #include "tensorflow/core/protobuf/config.pb.h"

@@ -144,7 +144,7 @@ tf_cuda_library(
         "//tensorflow/core:lib_proto_parsing",
         "//tensorflow/core:protos_all_cc",
         "//tensorflow/core/grappler:utils",
-        "//tensorflow/core/grappler/clusters:utils",
+        "//tensorflow/core/grappler/clusters:cluster_utils",
     ] + tf_protos_grappler(),
 )
 
@@ -240,7 +240,7 @@ cc_library(
         "//tensorflow/core/grappler:grappler_item",
         "//tensorflow/core/grappler:op_types",
         "//tensorflow/core/grappler:utils",
-        "//tensorflow/core/grappler/clusters:utils",
+        "//tensorflow/core/grappler/clusters:cluster_utils",
         "//tensorflow/core/grappler/costs:cost_estimator",
     ],
 )
@@ -292,7 +292,7 @@ cc_library(
         "//third_party/eigen3",
         "//tensorflow/core:framework",
         "//tensorflow/core:protos_all_cc",
-        "//tensorflow/core/grappler/clusters:utils",
+        "//tensorflow/core/grappler/clusters:cluster_utils",
     ] + tf_protos_grappler(),
 )
 
