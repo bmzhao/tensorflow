@@ -217,7 +217,10 @@ cc_library(
 
 cc_library(
     name = "stacktrace",
-    srcs = glob(["*/stacktrace.h"]),
+    srcs = tf_platform_srcs([
+        "stacktrace.h",
+        "stacktrace.cc",
+    ]),
     hdrs = ["stacktrace.h"],
     deps = [
         ":abi",
