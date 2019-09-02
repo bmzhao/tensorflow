@@ -126,7 +126,12 @@ void InstallStacktraceHandler() {
   }
 }
 
-#else
+// Todo(bmzhao): This #elif should ideally be just a #else. Due to
+// the globbing in tf_additional_lib_srcs, the windows stacktrace_handler.cc
+// is compiled and linked in addition to this implementation, leading to an
+// ODR violation. The ifdef is a temporary hack to guard against this. Once
+// we fully refactor platform/BUILD and core/BUILD, this should no longer exist.
+#elif !defined(PLATFORM_WINDOWS)
 void InstallStacktraceHandler() {}
 #endif  // defined(TF_GENERATE_STACKTRACE)
 

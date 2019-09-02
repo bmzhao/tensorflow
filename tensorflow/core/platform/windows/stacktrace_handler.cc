@@ -19,8 +19,10 @@ limitations under the License.
 #include <dbghelp.h>
 // clang-format on
 
+#include <io.h>
 #include <errno.h>
 #include <signal.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 #include <string>
@@ -86,8 +88,8 @@ bool PtrToString(uintptr_t ptr, char* buf, size_t size) {
 // is corrupted. It also does not call Window's symbolization function (which
 // requires acquiring a mutex), which is not safe in a signal handler.
 inline void SafePrintStackTracePointers() {
-  static const char begin_msg[] = "*** BEGIN STACK TRACE POINTERS***\n";
-  (void)write(STDERR_FILENO, begin_msg, strlen(begin_msg));
+  static constexpr char begin_msg[] = "*** BEGIN STACK TRACE POINTERS***\n";
+  (void)_write(_fileno(stderr), begin_msg, strlen(begin_msg));
 
   static constexpr int kMaxStackFrames = 64;
   void* trace[kMaxStackFrames];
@@ -96,14 +98,14 @@ inline void SafePrintStackTracePointers() {
   for (int i = 0; i < num_frames; ++i) {
     char buffer[32] = "unsuccessful ptr conversion";
     PtrToString(reinterpret_cast<uintptr_t>(trace[i]), buffer, sizeof(buffer));
-    (void)write(STDERR_FILENO, buffer, strlen(buffer));
+    (void)_write(_fileno(stderr), buffer, strlen(buffer));
   }
 
-  static const char end_msg[] = "*** END MANGLED STACK TRACE ***\n\n";
-  (void)write(STDERR_FILENO, end_msg, strlen(end_msg));
+  static constexpr char end_msg[] = "*** END MANGLED STACK TRACE ***\n\n";
+  (void)_write(_fileno(stderr), end_msg, strlen(end_msg));
 }
 
-int StacktraceHandler(int sig, int sigfpe_subcode) {
+void StacktraceHandler(int sig) {
   // We want to make sure our handler does not deadlock; this should be the last
   // thing our program does. In unix systems, we can use setitimer and SIGALRM,
   // to send an alarm signal killing our process after a set amount of time.
@@ -115,7 +117,7 @@ int StacktraceHandler(int sig, int sigfpe_subcode) {
 
   char buf[128];
   snprintf(buf, sizeof(buf), "*** Received signal %d ***\n", sig);
-  (void)write(STDERR_FILENO, buf, strlen(buf));
+  (void)write(_fileno(stderr), buf, strlen(buf));
 
   // Print "a" stack trace, as safely as possible.
   SafePrintStackTracePointers();
@@ -125,22 +127,22 @@ int StacktraceHandler(int sig, int sigfpe_subcode) {
   // will try to print more human readable things to the terminal.
   // But these have a higher probability to fail.
   std::string stacktrace = CurrentStackTrace();
-  (void)write(STDERR_FILENO, stacktrace.c_str(), stacktrace.length());
+  (void)write(_fileno(stderr), stacktrace.c_str(), stacktrace.length());
 
   // Abort the program.
   abort();
-
-  return sig;
 }
 
 }  // namespace
+
+namespace testing {
 
 // Windows documentation on signal handling:
 // https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/signal?view=vs-2019
 void InstallStacktraceHandler() {
   int handled_signals[] = {SIGSEGV, SIGABRT, SIGILL, SIGFPE};
 
-  std::thread alarm_thread([&alarm_mu, &alarm_activated]() {
+  std::thread alarm_thread([]() {
     // Wait until the alarm_activated bool is true, sleep for 60 seconds,
     // then kill the program.
     alarm_mu.lock();
@@ -151,6 +153,8 @@ void InstallStacktraceHandler() {
   });
   alarm_thread.detach();
 
+  typedef void (*SignalHandlerPointer)(int);
+
   for (int sig : handled_signals) {
     SignalHandlerPointer previousHandler = signal(sig, StacktraceHandler);
     if (previousHandler == SIG_ERR) {
@@ -159,16 +163,17 @@ void InstallStacktraceHandler() {
                "Warning, can't install backtrace signal handler for signal %d, "
                "errno:%d \n",
                sig, errno);
-      (void)write(STDERR_FILENO, buf, strlen(buf));
+      (void)write(_fileno(stderr), buf, strlen(buf));
     } else if (previousHandler != SIG_DFL) {
       char buf[128];
       snprintf(buf, sizeof(buf),
                "Warning, backtrace signal handler for signal %d overwrote "
                "previous handler.\n",
                sig);
-      (void)write(STDERR_FILENO, buf, strlen(buf));
+      (void)write(_fileno(stderr), buf, strlen(buf));
     }
   }
 }
 
+}  // namespace testing
 }  // namespace tensorflow
